@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="CoLE coordinates resolution scheduling, sparse attention, and prediction reuse to accelerate video diffusion. Explore the method, benchmark results, and video comparisons.">
+  <title>CoLE · Coordinated Learning and Evolution of Acceleration Policies for Video Diffusion</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="site.js" defer></script>
+</head>
+<body id="top">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="wordmark" href="#top" aria-label="CoLE home"><span class="mark" aria-hidden="true"></span>CoLE</a>
+      <nav aria-label="Sections">
+        <a href="#video">Video</a>
+        <a href="#method">Method</a>
+        <a href="#results">Results</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" aria-labelledby="project-title">
+      <div class="wrap hero-grid">
+        <div>
+          <h1 id="project-title"><strong>CoLE</strong><span>Coordinated Learning and Evolution of Acceleration Policies for Video Diffusion</span></h1>
+          <p class="hero-summary">CoLE decides when to increase resolution, how much attention to compute, and when to reuse predictions along a video denoising trajectory.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#video"><span class="play-icon" aria-hidden="true"></span>Watch the video</a>
+            <a class="button button-secondary" href="#results">View benchmarks <span aria-hidden="true">↓</span></a>
+          </div>
+        </div>
+        <figure class="hero-frame">
+          <img src="assets/examples/rainy_couple/cole.jpg" width="832" height="480" fetchpriority="high" alt="Two people carrying umbrellas on a brightly painted city street in heavy rain">
+          <figcaption><span class="hero-frame-label">CoLE output</span><span>“A couple in a heavy downpour, Van Gogh style”</span></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="metrics" aria-label="Headline benchmark results for Wan2.1-T2V-1.3B versus Native Wan">
+      <dl class="wrap metric-grid">
+        <div class="metric"><dt>VBench end-to-end speedup</dt><dd>5.91<span>×</span></dd></div>
+        <div class="metric"><dt>EvalCrafter end-to-end speedup</dt><dd>6.59<span>×</span></dd></div>
+        <div class="metric"><dt>VBench Total change in points</dt><dd>−0.185</dd></div>
+      </dl>
+    </section>
+
+    <section class="section wrap" id="video" aria-labelledby="video-title">
+      <div class="section-heading">
+        <h2 id="video-title">Supplementary video</h2>
+        <p>Eight side-by-side comparisons and a step-by-step look at the policy CoLE executes for the tai chi example.</p>
+      </div>
+      <div class="screening">
+        <video class="main-video" id="supplementary-video" controls playsinline preload="none" width="1920" height="1080" poster="assets/supplementary-poster.jpg" aria-label="CoLE supplementary video">
+          <source src="assets/cole-supplementary.mp4" type="video/mp4">
+          <a href="assets/cole-supplementary.mp4">Open the supplementary video</a>
+        </video>
+        <div class="chapters">
+          <h3>Chapters</h3>
+          <a class="chapter" href="assets/cole-supplementary.mp4#t=0" data-time="0"><span class="time">0:00</span><span>Tai chi</span><span aria-hidden="true">↗</span></a>
+          <a class="chapter" href="assets/cole-supplementary.mp4#t=4.7" data-time="4.7"><span class="time">0:05</span><span>Denoising trace</span><span aria-hidden="true">↗</span></a>
+          <a class="chapter" href="assets/cole-supplementary.mp4#t=14.2" data-time="14.2"><span class="time">0:14</span><span>More examples</span><span aria-hidden="true">↗</span></a>
+          <a class="chapter" href="assets/cole-supplementary.mp4#t=47.4" data-time="47.4"><span class="time">0:47</span><span>VBench results</span><span aria-hidden="true">↗</span></a>
+          <a class="download" href="assets/cole-supplementary.mp4" download>Download MP4 <span aria-hidden="true">↓</span></a>
+        </div>
+      </div>
+      <p class="note">Clip-level speedups in the video use Native Wan’s mean VBench latency as the reference. CoLE clip times are estimates based on denoising time plus a fixed 2.996 s allowance.</p>
+
+      <div class="examples" aria-labelledby="examples-title">
+        <h3 id="examples-title">Explore the examples</h3>
+        <div class="example-switch" aria-label="Example selection" hidden>
+          <button type="button" data-example="tai_chi" aria-pressed="true">Tai chi</button>
+          <button type="button" data-example="shark_watercolor" aria-pressed="false">Watercolor shark</button>
+          <button type="button" data-example="rainy_couple" aria-pressed="false">Rainy street</button>
+        </div>
+        <p class="example-prompt" id="example-prompt" aria-live="polite">“A person is tai chi”</p>
+        <div class="pair">
+          <figure class="clip-card">
+            <figcaption>Native Wan</figcaption>
+            <video id="native-example" controls playsinline muted preload="none" width="832" height="480" src="assets/examples/tai_chi/native.mp4" poster="assets/examples/tai_chi/native.jpg" aria-label="Native Wan video example"></video>
+          </figure>
+          <figure class="clip-card">
+            <figcaption>CoLE</figcaption>
+            <video id="cole-example" controls playsinline muted preload="none" width="832" height="480" src="assets/examples/tai_chi/cole.mp4" poster="assets/examples/tai_chi/cole.jpg" aria-label="CoLE video example"></video>
+          </figure>
+        </div>
+        <p class="note">Selected comparisons share prompts. Native Wan and CoLE use different random seeds in these clips.</p>
+      </div>
+    </section>
+
+    <section class="section method" id="method" aria-labelledby="method-title">
+      <div class="wrap">
+        <div class="section-heading">
+          <h2 id="method-title">How CoLE works</h2>
+          <p>Changing one denoising decision alters the state that later decisions see. CoLE learns from matched rollouts and evaluates joint policy edits on complete trajectories.</p>
+        </div>
+        <figure class="paper-figure">
+          <a href="assets/cole-pipeline.png"><img src="assets/cole-pipeline.png" width="1680" height="782" alt="CoLE pipeline showing matched controller training, offline program evolution with execution feedback, and deployment of the frozen controller with the selected program" loading="lazy"></a>
+          <figcaption>Paper Figure 2. Training, offline evolution, and deployment.</figcaption>
+        </figure>
+        <div class="method-grid">
+          <article><h3>Learn state-conditioned actions</h3><p>A shared controller learns from counterfactual trajectories that use the same prompt and initial noise. It reads text, latents, attention, and denoising progress.</p></article>
+          <article><h3>Evolve joint decisions offline</h3><p>An LLM agent proposes edits to a conditional rule program using quality, latency, and execution traces. Each candidate reruns the full trajectory with downstream decisions recomputed.</p></article>
+          <article><h3>Run the selected policy</h3><p>The frozen resolution–sparsity controller and selected program coordinate the resolution switch, attention sparsity, and prediction reuse. The LLM runs only during offline search.</p></article>
+        </div>
+        <details class="trajectory">
+          <summary>See how the rule program executes</summary>
+          <figure class="paper-figure">
+            <a href="assets/cole-policy-execution.png"><img src="assets/cole-policy-execution.png" width="1680" height="819" alt="An example rule program schedules the resolution switch at step 24, sets sparse attention by denoising phase, and gates each reuse decision using the current state" loading="lazy"></a>
+            <figcaption>Paper Figure 3. The switch sets the boundaries for later sparsity decisions. The current state and reuse template determine when to refresh the velocity prediction.</figcaption>
+          </figure>
+        </details>
+      </div>
+    </section>
+
+    <section class="section wrap" id="results" aria-labelledby="results-title">
+      <div class="section-heading">
+        <h2 id="results-title">Benchmark results</h2>
+        <p>Wan2.1-T2V-1.3B on VBench and EvalCrafter. Speedups use Native Wan as the baseline for each benchmark.</p>
+      </div>
+      <div class="result-grid">
+        <article class="result-card">
+          <h3>VBench <span>946 prompts</span></h3>
+          <p class="result-latency"><span>181.0 s</span><span aria-hidden="true">→</span><strong>30.6 s</strong></p>
+          <p>Mean end-to-end latency</p>
+        </article>
+        <article class="result-card">
+          <h3>EvalCrafter</h3>
+          <p class="result-latency"><span>181.94 s</span><span aria-hidden="true">→</span><strong>27.61 s</strong></p>
+          <p>Mean end-to-end latency</p>
+        </article>
+      </div>
+      <div class="table-scroll" role="region" aria-label="Benchmark table. Scroll horizontally on small screens." tabindex="0">
+        <table>
+          <caption>Quality and latency from Table 1 of the paper</caption>
+          <colgroup span="1"></colgroup><colgroup span="3"></colgroup><colgroup span="3"></colgroup>
+          <thead>
+            <tr><th scope="col" rowspan="2">Method</th><th scope="colgroup" colspan="3">VBench</th><th scope="colgroup" colspan="3">EvalCrafter</th></tr>
+            <tr><th scope="col">Total ↑</th><th scope="col">E2E (s) ↓</th><th scope="col">Speedup ↑</th><th scope="col">Total ↑</th><th scope="col">E2E (s) ↓</th><th scope="col">Speedup ↑</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">Native Wan</th><td>82.439</td><td>180.971</td><td>1.00×</td><td>227</td><td>181.94</td><td>1.00×</td></tr>
+            <tr><th scope="row">Sparge</th><td>82.119</td><td>108.315</td><td>1.67×</td><td>227</td><td>109.14</td><td>1.67×</td></tr>
+            <tr><th scope="row">TeaCache</th><td>82.035</td><td>96.074</td><td>1.88×</td><td>227</td><td>95.90</td><td>1.90×</td></tr>
+            <tr><th scope="row">SVG2</th><td>81.974</td><td>120.523</td><td>1.50×</td><td>225</td><td>158.82</td><td>1.15×</td></tr>
+            <tr><th scope="row">CoLE-L</th><td>82.274</td><td>43.292</td><td>4.18×</td><td>229</td><td>39.26</td><td>4.63×</td></tr>
+            <tr class="highlight"><th scope="row">CoLE</th><td>82.254</td><td>30.604</td><td>5.91×</td><td>228</td><td>27.61</td><td>6.59×</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">End-to-end latency includes text encoding, generation, VAE decoding, and postprocessing. CoLE-L uses learned readouts for all three mechanisms.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <a class="wordmark" href="#top"><span class="mark" aria-hidden="true"></span>CoLE</a>
+      <a href="#top">Back to top ↑</a>
+    </div>
+  </footer>
+</body>
+</html>

@@ -4,6 +4,8 @@
 
 CoLE coordinates resolution switching, sparse attention, and prediction reuse during denoising. CoLE-L learns all three decisions. CoLE runs the selected evolved program with a frozen controller.
 
+**[Project homepage](https://atsusawa.github.io/CoLE/)**
+
 ![CoLE's learned controller and evolved program coordinate three decisions during denoising (paper Figure 1a)](assets/cole_overview.png)
 
 ## Results
