@@ -1,0 +1,58 @@
+{
+  "schema": "cole_program_v1",
+  "candidate_id": "rsi_0219",
+  "parent_id": "rsi_0207",
+  "incumbent": {
+    "checkpoint_path": "checkpoints/wan21_controller.pt",
+    "checkpoint_sha256": "e159127418de79d8de2ab718d545dac734449dc473df454858a6ff614d497a16"
+  },
+  "rules": [
+    {
+      "rule_id": "r0",
+      "head": "reuse",
+      "action": "ultra",
+      "conditions": [],
+      "window": null
+    },
+    {
+      "rule_id": "r1",
+      "head": "sparse",
+      "action": "aggr2",
+      "conditions": [
+        {
+          "feature": "structure.coarse_grad",
+          "op": "le",
+          "value": 0.07
+        }
+      ],
+      "window": "late"
+    },
+    {
+      "rule_id": "r2",
+      "head": "sparse",
+      "action": "aggr2",
+      "conditions": [],
+      "window": "switch_transition"
+    },
+    {
+      "rule_id": "r3",
+      "head": "switch",
+      "action": 24,
+      "conditions": [
+        {
+          "feature": "efficiency.realized_density",
+          "op": "ge",
+          "value": 0.45
+        }
+      ],
+      "window": null
+    },
+    {
+      "rule_id": "r4",
+      "head": "sparse",
+      "action": "aggr1",
+      "conditions": [],
+      "window": "post_switch_body"
+    }
+  ]
+}

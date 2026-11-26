@@ -1,0 +1,7 @@
+include assets/cole_overview.png assets/vbench_qualitative.png
+include checkpoints/wan21_controller.pt
+include configs/wan21_program.json configs/vbench946.jsonl
+include scripts/run_cole.py scripts/score_vbench.py scripts/check_sparse.py
+include patches/sparse-sm120.patch patches/SpargeAttention-LICENSE.txt
+include licenses/Diffusers-LICENSE.txt
+recursive-include tests test_*.py

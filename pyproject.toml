@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cole-video"
+version = "0.1.0"
+description = "CoLE inference for Wan2.1 video diffusion"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.6",
+    "diffusers==0.33.1",
+    "transformers==4.45.2",
+    "accelerate==1.12.0",
+    "sentencepiece",
+    "numpy",
+    "Pillow",
+    "imageio[ffmpeg]",
+]
+
+[project.optional-dependencies]
+test = ["pytest", "jsonschema"]
+
+[tool.setuptools.packages.find]
+include = ["cole", "cole.*"]

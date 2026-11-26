@@ -1,0 +1,13 @@
+diff --git a/setup.py b/setup.py
+--- a/setup.py
++++ b/setup.py
+@@ -49,7 +49,8 @@
+     ]
+ 
+ # Supported NVIDIA GPU architectures.
+-SUPPORTED_ARCHS = {"8.0", "8.6", "8.7", "8.9", "9.0"}
++# CoLE enables the upstream build for compute capability 12.0.
++SUPPORTED_ARCHS = {"8.0", "8.6", "8.7", "8.9", "9.0", "12.0"}
+ 
+ # Compiler flags.
+ CXX_FLAGS = ["-g", "-O3", "-fopenmp", "-lgomp", "-std=c++17", "-DENABLE_BF16"]
